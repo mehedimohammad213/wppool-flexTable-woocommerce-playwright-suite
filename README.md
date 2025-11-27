@@ -216,18 +216,66 @@ View the HTML report:
 npm run test:report
 ```
 
-## 🐛 Bug Reporting
+## 🐛 Bug Reporting & GitHub Issues
 
-Bugs and issues found during testing are tracked using **GitHub Issues** with appropriate labels:
+**IMPORTANT:** While preparing the automation test suite, if you find any bugs or would like to give any suggestions and feature requests, mark the issues using **GitHub Issues** in this repository. Make proper use of GitHub labels.
 
-- `bug` - Something isn't working
-- `enhancement` - New feature or request
-- `priority:high` - High priority issue
-- `priority:medium` - Medium priority issue
-- `priority:low` - Low priority issue
-- `severity:critical` - Critical severity
-- `severity:major` - Major severity
-- `severity:minor` - Minor severity
+### Required Custom GitHub Labels
+
+**Priority Labels:**
+- `priority:critical` - Critical - Blocks functionality
+- `priority:high` - High - Important to fix
+- `priority:medium` - Medium - Should fix
+- `priority:low` - Low - Nice to have
+
+**Severity Labels:**
+- `severity:critical` - System crash, data loss
+- `severity:major` - Major feature broken
+- `severity:moderate` - Feature partially works
+- `severity:minor` - Small issue, cosmetic
+- `severity:trivial` - Typo, formatting
+
+**Component Labels:**
+- `component:flextable` - FlexTable plugin related
+- `component:woocommerce` - WooCommerce related
+- `component:wordpress` - WordPress core related
+- `component:test-automation` - Test suite related
+
+**Status Labels:**
+- `status:investigating` - Under investigation
+- `status:confirmed` - Bug confirmed
+- `status:needs-info` - Needs more information
+
+### Quick Setup
+
+**Option 1: Automated (Recommended)**
+```bash
+# Install GitHub CLI if needed
+sudo apt install gh  # Ubuntu/Debian
+# or: brew install gh  # macOS
+
+# Login to GitHub
+gh auth login
+
+# Run the label creation script
+cd /home/dev2/Documents/wppool
+./create-github-labels.sh
+```
+
+**Option 2: Manual Setup**
+
+See detailed instructions in `GITHUB_ISSUES_SETUP.md`
+
+### Creating Issues
+
+1. Go to **Issues** tab in your repository
+2. Click **"New Issue"**
+3. Select appropriate template (Bug Report / Feature Request)
+4. Fill in all required information
+5. Add labels for **priority**, **severity**, and **component**
+6. Submit the issue
+
+**📚 Detailed Guide:** See `GITHUB_ISSUES_SETUP.md` for complete instructions and examples
 
 ## 🏆 Best Practices Implemented
 

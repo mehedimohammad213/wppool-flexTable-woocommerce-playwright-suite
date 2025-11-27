@@ -1,0 +1,11 @@
+node_modules/
+/test-results/
+/playwright-report/
+/playwright/.cache/
+.env
+dist/
+*.log
+.DS_Store
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

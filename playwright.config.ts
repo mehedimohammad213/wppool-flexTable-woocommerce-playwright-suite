@@ -29,5 +29,5 @@ export default defineConfig({
     },
   ],
 
-  outputDir: 'test-results/',
+  outputDir: 'test-results/test-artifacts/',
 });

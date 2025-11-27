@@ -11,7 +11,8 @@
     "test:woocommerce": "playwright test tests/woocommerce/",
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report",
-    "test:ci": "playwright test --reporter=html,json"
+    "test:ci": "playwright test --reporter=html,json",
+    "generate-pdf": "node generate-pdf-report.js"
   },
   "keywords": [
     "playwright",

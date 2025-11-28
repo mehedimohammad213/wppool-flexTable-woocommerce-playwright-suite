@@ -65,6 +65,21 @@ jobs:
             playwright-report/
           retention-days: 30
 
+      - name: Create HTML Report ZIP
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ -d "test-results/html-report" ]; then
+            cd test-results
+            # Try zip first, fallback to tar if zip is not available
+            if command -v zip &> /dev/null; then
+              zip -r html-report.zip html-report/
+            else
+              tar -czf html-report.tar.gz html-report/
+            fi
+            cd ..
+          fi
+
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
         if: always()
@@ -73,6 +88,18 @@ jobs:
           name: html-report
           path: test-results/html-report/
           retention-days: 30
+
+      - name: Upload HTML Report ZIP
+        uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: html-report-download
+          path: |
+            test-results/html-report.zip
+            test-results/html-report.tar.gz
+          retention-days: 30
+          if-no-files-found: ignore
 
       - name: Comment PR with test results
         uses: actions/github-script@v7
@@ -93,14 +120,21 @@ jobs:
               comment += `✅ **Passed:** ${passed}/${total}\n`;
               comment += `❌ **Failed:** ${total - passed}/${total}\n\n`;
               comment += `### 📥 Download Reports\n\n`;
-              comment += `- [📊 HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/html-report)\n`;
-              comment += `- [📦 All Test Results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/playwright-report)\n`;
-              comment += `- [🔗 View Full Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+              comment += `**To download artifacts:**\n`;
+              comment += `1. Go to the [Actions run page](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+              comment += `2. Scroll down to the **Artifacts** section\n`;
+              comment += `3. Click on **html-report-download** to download the HTML report as a ZIP file\n`;
+              comment += `4. Or click on **html-report** or **playwright-report** for other artifacts\n\n`;
+              comment += `**Direct links:**\n`;
+              comment += `- [📊 View Run & Download Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
             } catch (error) {
               comment += '⚠️ Could not parse test results\n';
               comment += `### 📥 Download Reports\n\n`;
-              comment += `- [📊 HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/html-report)\n`;
-              comment += `- [📦 All Test Results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/playwright-report)\n`;
+              comment += `**To download artifacts:**\n`;
+              comment += `1. Go to the [Actions run page](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+              comment += `2. Scroll down to the **Artifacts** section\n`;
+              comment += `3. Click on **html-report-download** to download the HTML report as a ZIP file\n`;
+              comment += `4. Or click on **html-report** or **playwright-report** for other artifacts\n`;
             }
 
             github.rest.issues.createComment({
@@ -117,7 +151,10 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📥 Download Test Reports" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- [📊 HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/html-report)" >> $GITHUB_STEP_SUMMARY
-          echo "- [📦 All Test Results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/playwright-report)" >> $GITHUB_STEP_SUMMARY
+          echo "**How to download artifacts:**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Check the artifacts section above for detailed reports." >> $GITHUB_STEP_SUMMARY
+          echo "1. Scroll down to the **Artifacts** section below" >> $GITHUB_STEP_SUMMARY
+          echo "2. Click on **html-report-download** to download the HTML report as a ZIP file (easiest way!)" >> $GITHUB_STEP_SUMMARY
+          echo "3. Or click on **html-report** or **playwright-report** for other artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** Artifacts are automatically compressed. Click the artifact name to download." >> $GITHUB_STEP_SUMMARY

@@ -92,9 +92,15 @@ jobs:
 
               comment += `✅ **Passed:** ${passed}/${total}\n`;
               comment += `❌ **Failed:** ${total - passed}/${total}\n\n`;
-              comment += `📊 [View Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+              comment += `### 📥 Download Reports\n\n`;
+              comment += `- [📊 HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/html-report)\n`;
+              comment += `- [📦 All Test Results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/playwright-report)\n`;
+              comment += `- [🔗 View Full Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
             } catch (error) {
               comment += '⚠️ Could not parse test results\n';
+              comment += `### 📥 Download Reports\n\n`;
+              comment += `- [📊 HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/html-report)\n`;
+              comment += `- [📦 All Test Results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/playwright-report)\n`;
             }
 
             github.rest.issues.createComment({
@@ -108,4 +114,10 @@ jobs:
         if: always()
         run: |
           echo "## Test Execution Complete" >> $GITHUB_STEP_SUMMARY
-          echo "Check the artifacts for detailed reports" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📥 Download Test Reports" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [📊 HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/html-report)" >> $GITHUB_STEP_SUMMARY
+          echo "- [📦 All Test Results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/playwright-report)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the artifacts section above for detailed reports." >> $GITHUB_STEP_SUMMARY

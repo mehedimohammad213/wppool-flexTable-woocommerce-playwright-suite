@@ -12,7 +12,8 @@
     "test:debug": "playwright test --debug",
     "test:report": "playwright show-report",
     "test:ci": "playwright test --reporter=html,json",
-    "generate-pdf": "node generate-pdf-report.js"
+    "generate-pdf": "node generate-pdf-report.js",
+    "generate-qa-report": "node generate-qa-report.js"
   },
   "keywords": [
     "playwright",

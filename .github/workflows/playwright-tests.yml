@@ -2,9 +2,9 @@ name: Playwright Tests
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
   workflow_dispatch:
 
 jobs:
@@ -13,98 +13,148 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
 
-    - name: Update npm to latest version
-      run: npm install -g npm@latest
+      - name: Update npm to latest version
+        run: npm install -g npm@latest
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps chromium
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
 
-    - name: Create .env file
-      run: |
-        echo "WP_BASE_URL=${{ secrets.WP_BASE_URL }}" >> .env
-        echo "WP_ADMIN_USERNAME=${{ secrets.WP_ADMIN_USERNAME }}" >> .env
-        echo "WP_ADMIN_PASSWORD=${{ secrets.WP_ADMIN_PASSWORD }}" >> .env
-        echo "FLEXTABLE_GOOGLE_SHEET_URL=${{ secrets.FLEXTABLE_GOOGLE_SHEET_URL }}" >> .env
-        echo "FLEXTABLE_TABLE_TITLE=CI Test Table" >> .env
-        echo "FLEXTABLE_TABLE_DESCRIPTION=Automated test table from CI" >> .env
-        echo "WC_CUSTOMER_EMAIL=${{ secrets.WC_CUSTOMER_EMAIL }}" >> .env
-        echo "WC_CUSTOMER_PASSWORD=${{ secrets.WC_CUSTOMER_PASSWORD }}" >> .env
-        echo "WC_CUSTOMER_FIRST_NAME=John" >> .env
-        echo "WC_CUSTOMER_LAST_NAME=Doe" >> .env
-        echo "WC_BILLING_ADDRESS=123 Main Street" >> .env
-        echo "WC_BILLING_CITY=New York" >> .env
-        echo "WC_BILLING_STATE=NY" >> .env
-        echo "WC_BILLING_POSTCODE=10001" >> .env
-        echo "WC_BILLING_PHONE=1234567890" >> .env
-        echo "HEADLESS=true" >> .env
-        echo "TIMEOUT=30000" >> .env
-        echo "VIDEO_ON_FAILURE=true" >> .env
+      - name: Create .env file
+        run: |
+          echo "WP_BASE_URL=${{ secrets.WP_BASE_URL }}" >> .env
+          echo "WP_ADMIN_USERNAME=${{ secrets.WP_ADMIN_USERNAME }}" >> .env
+          echo "WP_ADMIN_PASSWORD=${{ secrets.WP_ADMIN_PASSWORD }}" >> .env
+          echo "FLEXTABLE_GOOGLE_SHEET_URL=${{ secrets.FLEXTABLE_GOOGLE_SHEET_URL }}" >> .env
+          echo "FLEXTABLE_TABLE_TITLE=CI Test Table" >> .env
+          echo "FLEXTABLE_TABLE_DESCRIPTION=Automated test table from CI" >> .env
+          echo "WC_CUSTOMER_EMAIL=${{ secrets.WC_CUSTOMER_EMAIL }}" >> .env
+          echo "WC_CUSTOMER_PASSWORD=${{ secrets.WC_CUSTOMER_PASSWORD }}" >> .env
+          echo "WC_CUSTOMER_FIRST_NAME=John" >> .env
+          echo "WC_CUSTOMER_LAST_NAME=Doe" >> .env
+          echo "WC_BILLING_ADDRESS=123 Main Street" >> .env
+          echo "WC_BILLING_CITY=New York" >> .env
+          echo "WC_BILLING_STATE=NY" >> .env
+          echo "WC_BILLING_POSTCODE=10001" >> .env
+          echo "WC_BILLING_PHONE=1234567890" >> .env
+          echo "HEADLESS=true" >> .env
+          echo "TIMEOUT=30000" >> .env
+          echo "VIDEO_ON_FAILURE=true" >> .env
 
-    - name: Run Playwright tests
-      run: npm run test:ci
+      - name: Run Playwright tests
+        run: npm run test:ci
 
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: playwright-report
-        path: |
-          test-results/
-          playwright-report/
-        retention-days: 30
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 30
 
-    - name: Upload HTML Report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: html-report
-        path: test-results/html-report/
-        retention-days: 30
+      - name: Create HTML Report ZIP
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ -d "test-results/html-report" ]; then
+            cd test-results
+            # Try zip first, fallback to tar if zip is not available
+            if command -v zip &> /dev/null; then
+              zip -r html-report.zip html-report/
+            else
+              tar -czf html-report.tar.gz html-report/
+            fi
+            cd ..
+          fi
 
-    - name: Comment PR with test results
-      uses: actions/github-script@v7
-      if: always() && github.event_name == 'pull_request'
-      with:
-        script: |
-          const fs = require('fs');
-          let comment = '## 🎭 Playwright Test Results\n\n';
+      - name: Upload HTML Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: html-report
+          path: test-results/html-report/
+          retention-days: 30
 
-          try {
-            const results = JSON.parse(fs.readFileSync('test-results/results.json', 'utf8'));
-            const total = results.suites.reduce((acc, suite) =>
-              acc + suite.specs.reduce((a, spec) => a + spec.tests.length, 0), 0);
-            const passed = results.suites.reduce((acc, suite) =>
-              acc + suite.specs.reduce((a, spec) =>
-                a + spec.tests.filter(t => t.results[0].status === 'passed').length, 0), 0);
+      - name: Upload HTML Report ZIP
+        uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: html-report-download
+          path: |
+            test-results/html-report.zip
+            test-results/html-report.tar.gz
+          retention-days: 30
+          if-no-files-found: ignore
 
-            comment += `✅ **Passed:** ${passed}/${total}\n`;
-            comment += `❌ **Failed:** ${total - passed}/${total}\n\n`;
-            comment += `📊 [View Full Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
-          } catch (error) {
-            comment += '⚠️ Could not parse test results\n';
-          }
+      - name: Comment PR with test results
+        uses: actions/github-script@v7
+        if: always() && github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+            let comment = '## 🎭 Playwright Test Results\n\n';
 
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: comment
-          });
+            try {
+              const results = JSON.parse(fs.readFileSync('test-results/results.json', 'utf8'));
+              const total = results.suites.reduce((acc, suite) =>
+                acc + suite.specs.reduce((a, spec) => a + spec.tests.length, 0), 0);
+              const passed = results.suites.reduce((acc, suite) =>
+                acc + suite.specs.reduce((a, spec) =>
+                  a + spec.tests.filter(t => t.results[0].status === 'passed').length, 0), 0);
 
-    - name: Test Summary
-      if: always()
-      run: |
-        echo "## Test Execution Complete" >> $GITHUB_STEP_SUMMARY
-        echo "Check the artifacts for detailed reports" >> $GITHUB_STEP_SUMMARY
+              comment += `✅ **Passed:** ${passed}/${total}\n`;
+              comment += `❌ **Failed:** ${total - passed}/${total}\n\n`;
+              comment += `### 📥 Download Reports\n\n`;
+              comment += `**To download artifacts:**\n`;
+              comment += `1. Go to the [Actions run page](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+              comment += `2. Scroll down to the **Artifacts** section\n`;
+              comment += `3. Click on **html-report-download** to download the HTML report as a ZIP file\n`;
+              comment += `4. Or click on **html-report** or **playwright-report** for other artifacts\n\n`;
+              comment += `**Direct links:**\n`;
+              comment += `- [📊 View Run & Download Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+            } catch (error) {
+              comment += '⚠️ Could not parse test results\n';
+              comment += `### 📥 Download Reports\n\n`;
+              comment += `**To download artifacts:**\n`;
+              comment += `1. Go to the [Actions run page](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+              comment += `2. Scroll down to the **Artifacts** section\n`;
+              comment += `3. Click on **html-report-download** to download the HTML report as a ZIP file\n`;
+              comment += `4. Or click on **html-report** or **playwright-report** for other artifacts\n`;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "## Test Execution Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📥 Download Test Reports" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**How to download artifacts:**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "1. Scroll down to the **Artifacts** section below" >> $GITHUB_STEP_SUMMARY
+          echo "2. Click on **html-report-download** to download the HTML report as a ZIP file (easiest way!)" >> $GITHUB_STEP_SUMMARY
+          echo "3. Or click on **html-report** or **playwright-report** for other artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** Artifacts are automatically compressed. Click the artifact name to download." >> $GITHUB_STEP_SUMMARY
